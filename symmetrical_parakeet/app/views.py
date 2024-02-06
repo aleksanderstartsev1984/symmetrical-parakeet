@@ -1,14 +1,15 @@
 # flake8:noqa
-import os
-from dotenv import load_dotenv
-
 from django.shortcuts import render
+from django.conf import settings
 from django.http import JsonResponse, HttpResponseRedirect
 
 
-load_dotenv()
-BOT_TOKEN = os.getenv('BOT_TOKEN')
-CHAT_ID = os.getenv('CHAT_ID')
+def data_extraction():
+    with open(f'{settings.BASE_DIR}/.env') as f:
+        data = f.readlines()
+        data = [i.rstrip('\n') for i in data]
+        data = dict(i.split('=') for i in data)
+        return data
 
 
 def index(request):
@@ -16,12 +17,16 @@ def index(request):
 
 
 def share(request):
-    url = {"url": f"https://api.telegram.org/bot{BOT_TOKEN}/sendmessage?"
-                  f"chat_id={CHAT_ID}&text=business-card:     "}
+    secret_data = data_extraction()
+    url = {"url": f"https://api.telegram.org/bot{secret_data['BOT_TOKEN']}/"
+                  f"sendmessage?chat_id={secret_data['CHAT_ID']}&"
+                  "text=business-card:     "}
     return JsonResponse(url)
 
 
 def send_message_to_telegram(request, text):
-    return HttpResponseRedirect(f"https://api.telegram.org/bot{BOT_TOKEN}/"
-                                f"sendmessage?chat_id={CHAT_ID}&"
-                                f"text=business-card:     {text}")
+    secret_data = data_extraction()
+    return HttpResponseRedirect(
+        f"https://api.telegram.org/bot{secret_data['BOT_TOKEN']}/sendmessage?"
+        f"chat_id={secret_data['CHAT_ID']}&text=business-card:     {text}"
+    )
